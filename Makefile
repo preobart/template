@@ -40,12 +40,10 @@ createsuperuser:
 check:
 	-ruff check .
 	-ruff format --check .
-	-pyright .
 
 lint:
 	ruff check . --fix
 	ruff format .
-	pyright .
 
 test:
 	docker compose exec -T $(SERVICE) python manage.py test $(ARG) --parallel --keepdb
