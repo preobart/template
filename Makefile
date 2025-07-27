@@ -42,11 +42,16 @@ check:
 	-ruff format --check .
 	-pyright .
 
+lint:
+	ruff check . --fix
+	ruff format .
+	pyright .
+
 test:
-	docker compose exec $(SERVICE) python manage.py test $(ARG) --parallel --keepdb
+	docker compose exec -T $(SERVICE) python manage.py test $(ARG) --parallel --keepdb
 
 test_reset:
-	docker compose exec $(SERVICE) python manage.py test $(ARG) --parallel
+	docker compose exec -T $(SERVICE) python manage.py test $(ARG) --parallel
 
 update_dependencies:
 	docker compose down

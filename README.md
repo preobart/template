@@ -71,8 +71,8 @@ After completing ALL of the above, clear the README. Then follow `Running` below
 
 -   Open a new command line window and go to the project's directory
 -   Update the dependencies management files by performing any number of the following steps:
--   To add a new **backend** dependency, run `docker compose run --rm backend bash` to open an interactive shell and then run `uv add {dependency}` to add the dependency. 
-    -   After updating the desired file(s), run `make docker_update_dependencies` to update the containers with the new dependencies
+-   To add a new dependency, run `docker compose run --rm app bash` to open an interactive shell and then run `uv add {dependency}` to add the dependency. 
+    -   After updating the desired file(s), run `make update_dependencies` to update the containers with the new dependencies
         > The above command will stop and re-build the containers in order to make the new dependencies effective
 
 

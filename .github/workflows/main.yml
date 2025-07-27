@@ -17,6 +17,7 @@ jobs:
     outputs:
       secret_key: ${{ steps.setup.outputs.secret_key }}
     steps:
+      - uses: actions/checkout@v4
       - id: setup
         uses: ./.github/actions/setup
 
@@ -24,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - run: uvx ruff check .
         env:
@@ -33,6 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - run: uv run pyright .
         env:
@@ -42,6 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - run: uv run python manage.py makemigrations --check --dry-run
         env:
@@ -51,6 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - run: uv run python manage.py check
         env:
@@ -60,7 +65,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - run: uv run python manage.py test
         env:
           SECRET_KEY: ${{ needs.setup.outputs.secret_key }}
+          DJANGO_SETTINGS_MODULE: "clipboard.settings.test"
