@@ -4,20 +4,27 @@ import os
 import sys
 
 
-def main():
-
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings.base")
- 
-    try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. Are you sure it's installed and "
-            "available on your PYTHONPATH environment variable? Did you "
-            "forget to activate a virtual environment?"
-        ) from exc
-    execute_from_command_line(sys.argv)
-
-
 if __name__ == '__main__':
-    main()
+
+    settings_module = os.environ.get("DJANGO_SETTINGS_MODULE", default=None)
+
+    if sys.argv[1] == "test":
+        if settings_module:
+            print(
+                "Ignoring config('DJANGO_SETTINGS_MODULE') because it's test. "
+                "Using '{{project_name}}.settings.test'"
+            )
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{project_name}}.settings.test")
+    else:
+        if settings_module is None:
+            print(
+                "Error: no DJANGO_SETTINGS_MODULE found. Will NOT start devserver. "
+                "Remember to create .env file at project root. "
+                "Check README for more info."
+            )
+            sys.exit(1)
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
+
+    from django.core.management import execute_from_command_line
+
+    execute_from_command_line(sys.argv)

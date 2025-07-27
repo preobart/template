@@ -23,6 +23,9 @@ env = os.environ.get
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+def base_dir_join(*args):
+    return os.path.join(BASE_DIR, *args)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -45,16 +48,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework",
+    'csp',
+    "defender",
 ]
 
 MIDDLEWARE = [
+    'django.middleware.gzip.GZipMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'django_permissions_policy.PermissionsPolicyMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'defender.middleware.FailedLoginMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
 ]
 
 ROOT_URLCONF = '{{project_name}}.urls'
@@ -62,13 +72,22 @@ ROOT_URLCONF = '{{project_name}}.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [base_dir_join("templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+            ],
+            "loaders": [
+                (
+                    "django.template.loaders.cached.Loader",
+                    [
+                        "django.template.loaders.filesystem.Loader",
+                        "django.template.loaders.app_directories.Loader",
+                    ],
+                ),
             ],
         },
     },
@@ -83,10 +102,10 @@ WSGI_APPLICATION = '{{project_name}}.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'auth_db',
+        'NAME': env('POSTGRES_DB'),
         'USER': env('POSTGRES_USER'),
         'PASSWORD': env('POSTGRES_PASSWORD'),
-        'HOST': env('POSTGRES_HOST', 'localhost'),
+        'HOST': env('POSTGRES_HOST', 'db'),
         'PORT': env('POSTGRES_PORT', '5432'),
         'TEST': {
             'DEPENDENCIES': [], 
@@ -113,6 +132,14 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -135,3 +162,77 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# All available policies are listed at:
+# https://github.com/w3c/webappsec-permissions-policy/blob/main/features.md
+# Empty list means the policy is disabled
+PERMISSIONS_POLICY = {
+    "accelerometer": [],
+    "camera": [],
+    "display-capture": [],
+    "encrypted-media": [],
+    "geolocation": [],
+    "gyroscope": [],
+    "magnetometer": [],
+    "microphone": [],
+    "midi": [],
+    "payment": [],
+    "usb": [],
+    "xr-spatial-tracking": [],
+}
+
+# Celery
+# Recommended settings for reliability: https://gist.github.com/fjsj/da41321ac96cf28a96235cb20e7236f6
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_ACKS_LATE = True
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BROKER_TRANSPORT_OPTIONS = {"confirm_publish": True, "confirm_timeout": 5.0}
+
+CELERY_BROKER_POOL_LIMIT = int(env("CELERY_BROKER_POOL_LIMIT", 1))
+CELERY_BROKER_CONNECTION_TIMEOUT = float(env("CELERY_BROKER_CONNECTION_TIMEOUT", 30.0))
+
+CELERY_REDIS_MAX_CONNECTIONS = (
+    int(os.environ["CELERY_REDIS_MAX_CONNECTIONS"])
+    if env("CELERY_REDIS_MAX_CONNECTIONS") is not None
+    else None
+)
+
+CELERY_TASK_ACKS_ON_FAILURE_OR_TIMEOUT = (
+    env("CELERY_TASK_ACKS_ON_FAILURE_OR_TIMEOUT", "true").lower() in ("1", "true", "yes")
+)
+
+CELERY_TASK_REJECT_ON_WORKER_LOST = (
+    env("CELERY_TASK_REJECT_ON_WORKER_LOST", "false").lower() in ("1", "true", "yes")
+)
+
+CELERY_WORKER_PREFETCH_MULTIPLIER = int(env("CELERY_WORKER_PREFETCH_MULTIPLIER", 1))
+
+CELERY_WORKER_CONCURRENCY = (
+    int(os.environ["CELERY_WORKER_CONCURRENCY"])
+    if env("CELERY_WORKER_CONCURRENCY") is not None
+    else None
+)
+
+CELERY_WORKER_MAX_TASKS_PER_CHILD = int(env("CELERY_WORKER_MAX_TASKS_PER_CHILD", 1000))
+
+CELERY_WORKER_SEND_TASK_EVENTS = (
+    env("CELERY_WORKER_SEND_TASK_EVENTS", "true").lower() in ("1", "true", "yes")
+)
+
+CELERY_EVENT_QUEUE_EXPIRES = float(env("CELERY_EVENT_QUEUE_EXPIRES", 60.0))
+CELERY_EVENT_QUEUE_TTL = float(env("CELERY_EVENT_QUEUE_TTL", 5.0))
+
+# Django-CSP - XSS defence
+CSP_DEFAULT_SRC = ["'self'"]
+CSP_SCRIPT_SRC = ["'self'"]
+CSP_STYLE_SRC = ["'self'"]
+CSP_IMG_SRC = ["'self'"]
+CSP_FONT_SRC = ["'self'"]
+
+# Django-defender
+DEFENDER_LOGIN_FAILURE_LIMIT = 5
+DEFENDER_COOLOFF_TIME = 300  # 5 minutes
+DEFENDER_LOCKOUT_TEMPLATE = "defender/lockout.html"
+DEFENDER_REDIS_URL = env("REDIS_URL")

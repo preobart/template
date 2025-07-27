@@ -19,14 +19,11 @@ down:
 
 restart: down up
 
-build:
-	docker compose build --no-cache
-
 logs:
 	docker compose logs -f $(ARG)
 
 shell:
-	docker compose exec $(SERVICE) bash
+	docker compose exec $(ARG) bash
 
 manage:
 	docker compose exec $(SERVICE) python manage.py $(ARG)
