@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+
 import os
 import sys
 
+from dotenv import load_dotenv
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
+
+    load_dotenv()
 
     settings_module = os.environ.get("DJANGO_SETTINGS_MODULE", default=None)
 
@@ -12,9 +17,9 @@ if __name__ == '__main__':
         if settings_module:
             print(
                 "Ignoring config('DJANGO_SETTINGS_MODULE') because it's test. "
-                "Using '{{project_name}}.settings.test'"
+                "Using 'clipboard.settings.test'"
             )
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{project_name}}.settings.test")
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "clipboard.settings.test")
     else:
         if settings_module is None:
             print(
