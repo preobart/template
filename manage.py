@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 
 if __name__ == "__main__":
-
     load_dotenv()
 
     settings_module = os.environ.get("DJANGO_SETTINGS_MODULE", default=None)

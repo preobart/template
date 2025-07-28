@@ -1,8 +1,6 @@
 import os
 import sys
 
-from django.apps import apps
-
 from celery import Celery
 
 
@@ -17,6 +15,6 @@ if settings_module is None:
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 
-app = Celery("{{project_name}}_tasks") # type: ignore
+app = Celery("clipboard_tasks")  # type: ignore
 app.config_from_object("django.conf:settings", namespace="CELERY")
-app.autodiscover_tasks(lambda: [n.name for n in apps.get_app_configs()])
+app.autodiscover_tasks()

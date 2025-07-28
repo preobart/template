@@ -27,8 +27,13 @@ For continuous integration, a [Github Action](https://github.com/features/action
 -   `django-upgrade` for automatically upgrading Django code to the target version on pre-commit
 -   `django-csp` for setting the draft security HTTP header Content-Security-Policy
 -   `django-permissions-policy` for setting the draft security HTTP header Permissions-Policy
+-   `django-celery-results` for storing Celery task results in the Django database
+-   `django-celery-beat` for managing periodic Celery tasks and schedules in the database
 -   `django-defender` for blocking brute force attacks against login
 -   `psycopg2-binary` for using PostgreSQL database
+-   `redis` for message brokering and caching (used by Celery and Django)
+-   `python-dotenv` for loading environment variables from `.env` files
+-   `pre-commit` for managing Git hooks for code formatting, linting, and automated checks
 
 ## Project bootstrap [![main](https://github.com/preobart/template/actions/workflows/main.yml/badge.svg)](https://github.com/preobart/template/actions/workflows/main.yml) 
 

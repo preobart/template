@@ -18,6 +18,11 @@ services:
     image: "rabbitmq:alpine"
     networks:
       - backend
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
 
   result:
     image: "redis:alpine"
@@ -47,22 +52,43 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
-    command: celery --app={{project_name}} worker --loglevel=info
+    command: celery --app=clipboard.celery_app worker --loglevel=info
     volumes:
       - .:/app
       - /app/.venv
     env_file: .env
     depends_on:
-      - db
-      - broker
-      - result
+      db:
+        condition: service_started
+      broker:
+        condition: service_healthy
+      result:
+        condition: service_started
+    networks:
+      - backend 
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery --app=clipboard.celery_app beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info
+    volumes:
+      - .:/app
+      - /app/.venv
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_started
+      broker:
+        condition: service_healthy
+      result:
+        condition: service_started
     networks:
       - backend
 
 volumes:
   dbdata:
     name: {{project_name}}_dbdata
-    external: true
 
 networks:
   backend:

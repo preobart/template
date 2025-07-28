@@ -29,7 +29,7 @@ manage:
 	docker compose exec $(SERVICE) python manage.py $(ARG)
 
 migrate:
-	docker compose exec $(SERVICE) python manage.py migrate
+	docker compose exec $(SERVICE) python manage.py migrate $(ARG)
 
 makemigrations:
 	docker compose exec $(SERVICE) python manage.py makemigrations
