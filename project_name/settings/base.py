@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "rest_framework",
-    'csp',
     "defender",
 ]
 
@@ -64,7 +63,6 @@ MIDDLEWARE = [
     'defender.middleware.FailedLoginMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'csp.middleware.CSPMiddleware',
 ]
 
 ROOT_URLCONF = '{{project_name}}.urls'
@@ -136,9 +134,6 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
 }
 
 # Internationalization
@@ -207,13 +202,6 @@ CELERY_WORKER_SEND_TASK_EVENTS = env("CELERY_WORKER_SEND_TASK_EVENTS", "true")
 
 CELERY_EVENT_QUEUE_EXPIRES = float(env("CELERY_EVENT_QUEUE_EXPIRES", 60.0))
 CELERY_EVENT_QUEUE_TTL = float(env("CELERY_EVENT_QUEUE_TTL", 5.0))
-
-# Django-CSP - XSS defence
-CSP_DEFAULT_SRC = ["'self'"]
-CSP_SCRIPT_SRC = ["'self'"]
-CSP_STYLE_SRC = ["'self'"]
-CSP_IMG_SRC = ["'self'"]
-CSP_FONT_SRC = ["'self'"]
 
 # Django-defender
 DEFENDER_LOGIN_FAILURE_LIMIT = 5

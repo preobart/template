@@ -60,4 +60,4 @@ jobs:
       - run: uv run python manage.py test
         env:
           SECRET_KEY: ${{ needs.setup.outputs.secret_key }}
-          DJANGO_SETTINGS_MODULE: "clipboard.settings.test"
+          DJANGO_SETTINGS_MODULE: "{{project_name}}.settings.test"

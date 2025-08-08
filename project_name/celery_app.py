@@ -15,6 +15,6 @@ if settings_module is None:
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 
-app = Celery("clipboard_tasks")  # type: ignore
+app = Celery("{{ project_name }}_tasks")  # type: ignore
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()

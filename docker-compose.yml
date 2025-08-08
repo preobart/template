@@ -1,23 +1,30 @@
 services:
   db:
-    image: postgres:16-alpine
-    env_file:
-      - .env
+    image: postgres:17-alpine
+    restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: {{ env.POSTGRES_USER }}
+      POSTGRES_PASSWORD: {{ env.POSTGRES_PASSWORD }}
+      POSTGRES_DB: {{ env.POSTGRES_DB }}
+    container_name: db
     ports:
-      - "127.0.0.1:5432:5432"   
+      - "5432:5432"
     volumes:
       - dbdata:/var/lib/postgresql/data
     networks:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   broker:
     image: "rabbitmq:alpine"
+    restart: always
     networks:
       - backend
+    container_name: broker
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 5s
@@ -26,37 +33,56 @@ services:
 
   result:
     image: "redis:alpine"
+    restart: always
+    container_name: result
     networks:
       - backend
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: {{ env.BACKEND_IMAGE }}
+    restart: always
+    command: >
+      sh -c "
+        python manage.py makemigrations --dry-run --check &&
+        python manage.py migrate --no-input &&
+        gunicorn clipboard.wsgi:application \
+          --bind 0.0.0.0:8081 \
+          --access-logfile - \
+          --error-logfile - \
+          --capture-output \
+          --log-level info \
+          --workers 2 \
+          --timeout 120 \
+          --reload
+      "
     container_name: app
-    volumes:
-      - .:/app
-      - /app/.venv
     ports:
-      - "127.0.0.1:8000:8000"
-    env_file:
-      - .env
+      - "8081:8081"
     depends_on:
-      - db
-      - broker
-      - result
+      db:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+      result:
+        condition: service_started
+    environment:
+      DJANGO_SETTINGS_MODULE: {{ env.DJANGO_SETTINGS_MODULE }}
+      SECRET_KEY: {{ env.SECRET_KEY }}
+      ALLOWED_HOSTS: {{ env.ALLOWED_HOSTS }}
+      POSTGRES_USER: {{ env.POSTGRES_USER }}
+      POSTGRES_PASSWORD: {{ env.POSTGRES_PASSWORD }}
+      POSTGRES_DB: {{ env.POSTGRES_DB }}
+      CELERY_BROKER_URL: "amqp://broker:5672//"
+      REDIS_URL: "redis://result:6379/0"
+      PORT: 8081
     networks:
       - backend
 
   celery:
-    build:
-      dockerfile: Dockerfile
-      context: .
-    command: celery --app=clipboard.celery_app worker --loglevel=info
-    volumes:
-      - .:/app
-      - /app/.venv
-    env_file: .env
+    image: {{ env.BACKEND_IMAGE }}
+    restart: always
+    command: celery --app={{ project_name }}.celery_app worker --loglevel=info
+    container_name: celery
     depends_on:
       db:
         condition: service_started
@@ -64,31 +90,47 @@ services:
         condition: service_healthy
       result:
         condition: service_started
+    environment:
+      DJANGO_SETTINGS_MODULE: {{ env.DJANGO_SETTINGS_MODULE }}
+      SECRET_KEY: {{ env.SECRET_KEY }}
+      ALLOWED_HOSTS: {{ env.ALLOWED_HOSTS }}
+      POSTGRES_USER: {{ env.POSTGRES_USER }}
+      POSTGRES_PASSWORD: {{ env.POSTGRES_PASSWORD }}
+      POSTGRES_DB: {{ env.POSTGRES_DB }}
+      CELERY_BROKER_URL: "amqp://broker:5672//"
+      REDIS_URL: "redis://result:6379/0"
     networks:
-      - backend 
+      - backend
 
   celery_beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: celery --app=clipboard.celery_app beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info
-    volumes:
-      - .:/app
-      - /app/.venv
-    env_file: .env
+    image: {{ env.BACKEND_IMAGE }}
+    restart: always
+    command: celery --app={{ project_name }}.celery_app beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info
+    container_name: celery_beat
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
       broker:
         condition: service_healthy
       result:
         condition: service_started
+      app:
+        condition: service_started
+    environment:
+      DJANGO_SETTINGS_MODULE: {{ env.DJANGO_SETTINGS_MODULE }}
+      SECRET_KEY: {{ env.SECRET_KEY }}
+      ALLOWED_HOSTS: {{ env.ALLOWED_HOSTS }}
+      POSTGRES_USER: {{ env.POSTGRES_USER }}
+      POSTGRES_PASSWORD: {{ env.POSTGRES_PASSWORD }}
+      POSTGRES_DB: {{ env.POSTGRES_DB }}
+      CELERY_BROKER_URL: "amqp://broker:5672//"
+      REDIS_URL: "redis://result:6379/0"
     networks:
       - backend
 
 volumes:
   dbdata:
-    name: {{project_name}}_dbdata
+    name: {{ project_name }}_dbdata
 
 networks:
   backend:

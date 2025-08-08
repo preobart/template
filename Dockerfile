@@ -26,11 +26,11 @@ FROM python:3.13-slim-bookworm
 
 WORKDIR /app
 
+ENV DJANGO_SETTINGS_MODULE=clipboard.settings.production \
+    PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1
+
 # Copy the application from the builder
 COPY --from=builder --chown=app:app /app /app
 
-# Place executables in the environment at the front of the path
-ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
-
-# Run the FastAPI application by default
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Run the Django application by default

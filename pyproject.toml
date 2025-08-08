@@ -10,7 +10,6 @@ dependencies = [
     "django>=5.2.4",
     "django-celery-beat>=2.8.1",
     "django-celery-results>=2.6.0",
-    "django-csp>=4.0",
     "django-defender>=0.9.8",
     "django-permissions-policy>=4.26.0",
     "djangorestframework>=3.16.0",
