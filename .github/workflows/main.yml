@@ -17,7 +17,7 @@ jobs:
     outputs:
       secret_key: ${{ steps.setup.outputs.secret_key }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: setup
         uses: ./.github/actions/setup
 
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup
       - run: uvx ruff check .
         env:
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup
       - run: uv run python manage.py makemigrations --check --dry-run
         env:
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup
       - run: uv run python manage.py check
         env:
@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup
       - run: uv run python manage.py test
         env:
