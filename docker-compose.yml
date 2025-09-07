@@ -3,9 +3,9 @@ services:
     image: postgres:17-alpine
     restart: always
     environment:
-      POSTGRES_USER: {{ env.POSTGRES_USER }}
-      POSTGRES_PASSWORD: {{ env.POSTGRES_PASSWORD }}
-      POSTGRES_DB: {{ env.POSTGRES_DB }}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     container_name: db
     ports:
       - "5432:5432"
@@ -39,13 +39,15 @@ services:
       - backend
 
   app:
-    image: {{ env.BACKEND_IMAGE }}
+    build:
+      dockerfile: Dockerfile
+      context: .
     restart: always
     command: >
       sh -c "
         python manage.py makemigrations --dry-run --check &&
         python manage.py migrate --no-input &&
-        gunicorn clipboard.wsgi:application \
+        gunicorn {{ project_name }}.wsgi:application \
           --bind 0.0.0.0:8081 \
           --access-logfile - \
           --error-logfile - \
@@ -66,20 +68,22 @@ services:
       result:
         condition: service_started
     environment:
-      DJANGO_SETTINGS_MODULE: {{ env.DJANGO_SETTINGS_MODULE }}
-      SECRET_KEY: {{ env.SECRET_KEY }}
-      ALLOWED_HOSTS: {{ env.ALLOWED_HOSTS }}
-      POSTGRES_USER: {{ env.POSTGRES_USER }}
-      POSTGRES_PASSWORD: {{ env.POSTGRES_PASSWORD }}
-      POSTGRES_DB: {{ env.POSTGRES_DB }}
-      CELERY_BROKER_URL: "amqp://broker:5672//"
-      REDIS_URL: "redis://result:6379/0"
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE}
+      SECRET_KEY: ${SECRET_KEY}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      REDIS_URL: ${REDIS_URL}
       PORT: 8081
     networks:
       - backend
 
   celery:
-    image: {{ env.BACKEND_IMAGE }}
+    build:
+      dockerfile: Dockerfile
+      context: .
     restart: always
     command: celery --app={{ project_name }}.celery_app worker --loglevel=info
     container_name: celery
@@ -91,19 +95,21 @@ services:
       result:
         condition: service_started
     environment:
-      DJANGO_SETTINGS_MODULE: {{ env.DJANGO_SETTINGS_MODULE }}
-      SECRET_KEY: {{ env.SECRET_KEY }}
-      ALLOWED_HOSTS: {{ env.ALLOWED_HOSTS }}
-      POSTGRES_USER: {{ env.POSTGRES_USER }}
-      POSTGRES_PASSWORD: {{ env.POSTGRES_PASSWORD }}
-      POSTGRES_DB: {{ env.POSTGRES_DB }}
-      CELERY_BROKER_URL: "amqp://broker:5672//"
-      REDIS_URL: "redis://result:6379/0"
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE}
+      SECRET_KEY: ${SECRET_KEY}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      REDIS_URL: ${REDIS_URL}
     networks:
       - backend
 
   celery_beat:
-    image: {{ env.BACKEND_IMAGE }}
+    build:
+      dockerfile: Dockerfile
+      context: .
     restart: always
     command: celery --app={{ project_name }}.celery_app beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info
     container_name: celery_beat
@@ -117,14 +123,14 @@ services:
       app:
         condition: service_started
     environment:
-      DJANGO_SETTINGS_MODULE: {{ env.DJANGO_SETTINGS_MODULE }}
-      SECRET_KEY: {{ env.SECRET_KEY }}
-      ALLOWED_HOSTS: {{ env.ALLOWED_HOSTS }}
-      POSTGRES_USER: {{ env.POSTGRES_USER }}
-      POSTGRES_PASSWORD: {{ env.POSTGRES_PASSWORD }}
-      POSTGRES_DB: {{ env.POSTGRES_DB }}
-      CELERY_BROKER_URL: "amqp://broker:5672//"
-      REDIS_URL: "redis://result:6379/0"
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE}
+      SECRET_KEY: ${SECRET_KEY}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      REDIS_URL: ${REDIS_URL}
     networks:
       - backend
 

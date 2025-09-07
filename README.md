@@ -42,7 +42,7 @@ For continuous integration, a [Github Action](https://github.com/features/action
 -   [ ] Open the command line and go to the directory you want to start your project in
 -   [ ] Start your project using (replace `project_name` with your project name and remove the curly braces):
     ```
-    django-admin startproject quicksnip . --extension py,json,yml,yaml,toml,lock --name Dockerfile,README.md,.env.example,.gitignore,Makefile,LICENSE --template=https://github.com/preobart/template/archive/refs/heads/main.zip
+    django-admin startproject {{project_name}} . --extension py,json,yml,yaml,toml,lock --name Dockerfile,README.md,.env.example,.gitignore,Makefile,LICENSE --template=https://github.com/preobart/template/archive/refs/heads/main.zip
     ```
 In the next steps, always remember to replace {{project_name}} with your project's name (in case it isn't yet):
 -   [ ] Above: don't forget the `--extension` and `--name` params!
