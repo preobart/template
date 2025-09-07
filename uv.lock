@@ -307,7 +307,7 @@ wheels = [
 ]
 
 [[package]]
-name = "project-name"
+name = "{{project-name}}"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
