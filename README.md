@@ -42,7 +42,7 @@ For continuous integration, a [Github Action](https://github.com/features/action
 -   [ ] Open the command line and go to the directory you want to start your project in
 -   [ ] Start your project using (replace `project_name` with your project name and remove the curly braces):
     ```
-    django-admin startproject {{project_name}} . --extension py,json,yml,yaml,toml,lock --name Dockerfile,README.md,.env.example,.gitignore,Makefile,LICENSE --template=https://github.com/preobart/template/archive/refs/heads/main.zip
+    django-admin startproject {{project_name}} . --extension py,json,yml,yaml,toml,lock --name Dockerfile,README.md,.env.example,.gitignore,Makefile,LICENSE,.github --template=https://github.com/preobart/template/archive/refs/heads/main.zip
     ```
 In the next steps, always remember to replace {{project_name}} with your project's name (in case it isn't yet):
 -   [ ] Above: don't forget the `--extension` and `--name` params!
@@ -52,12 +52,6 @@ In the next steps, always remember to replace {{project_name}} with your project
 After completing ALL of the above, clear the README. Then follow `Running` below.
 
 ## Running
-
-### Setup
-
--   Do the following:
-    -   Create a git-untracked `.env` file:
-        `cp .env.example .env`
 
 ### If you are using Docker, you can:
 
@@ -77,8 +71,8 @@ After completing ALL of the above, clear the README. Then follow `Running` below
 -   Open a new command line window and go to the project's directory
 -   Update the dependencies management files by performing any number of the following steps:
 -   To add a new dependency, run `docker compose run --rm app bash` to open an interactive shell and then run `uv add {dependency}` to add the dependency. 
-    -   After updating the desired file(s), run `make update_dependencies` to update the containers with the new dependencies
-        > The above command will stop and re-build the containers in order to make the new dependencies effective
+-   After updating the desired file(s), run `make update_dependencies` to update the containers with the new dependencies
+    > The above command will stop and re-build the containers in order to make the new dependencies effective
 
 
 ### If you are not using Docker:
@@ -132,26 +126,4 @@ To add a new dependency, run `uv add {dependency}`.
 
 ## Pre-commit hooks
 
-### If you are using Docker:
-
--  ...
-
-### If you are not using Docker:
-
 -   On project root, run `pre-commit install` to enable the hook into your git repo. The hook will run automatically for each commit.
-
-## Opinionated Settings
-
-`CELERY_TASK_ACKS_LATE = True`
-
-- We believe Celery tasks should be idempotent. So for us it's safe to set `CELERY_TASK_ACKS_LATE = True` to ensure tasks will be re-queued after a worker failure. Check Celery docs on ["Should I use retry or acks_late?"](https://docs.celeryq.dev/en/stable/faq.html#faq-acks-late-vs-retry) for more info.
-
-### Django-CSP
-
-Django-CSP helps implementing Content Security Policy (CSP) in Django projects to mitigate cross-site scripting (XSS) attacks by declaring which dynamic resources are allowed to load.
-
-In this project, we have defined several CSP settings that define the sources from which different types of resources can be loaded. If you need to load external images, fonts, or other resources, you will need to add the sources to the corresponding CSP settings. For example:
-- To load scripts from an external source, such as https://browser.sentry-cdn.com, you would add this source to `CSP_SCRIPT_SRC`.
-- To load images from an external source, such as https://example.com, you would add this source to `CSP_IMG_SRC`.
-
-Please note that you should only add trusted sources to these settings to maintain the security of your site. For more details, please refer to the [Django-CSP documentation](https://django-csp.readthedocs.io/en/latest/).
