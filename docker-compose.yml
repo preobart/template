@@ -6,13 +6,12 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    container_name: db
     ports:
       - "5432:5432"
     volumes:
       - dbdata:/var/lib/postgresql/data
     networks:
-      - backend
+      - {{ project_name }}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -24,7 +23,6 @@ services:
     restart: always
     networks:
       - backend
-    container_name: broker
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 5s
@@ -34,30 +32,18 @@ services:
   result:
     image: "redis:alpine"
     restart: always
-    container_name: result
     networks:
-      - backend
+      - {{ project_name }}
 
   app:
     build:
       dockerfile: Dockerfile
       context: .
     restart: always
-    command: >
-      sh -c "
-        python manage.py makemigrations --dry-run --check &&
-        python manage.py migrate --no-input &&
-        gunicorn {{ project_name }}.wsgi:application \
-          --bind 0.0.0.0:8081 \
-          --access-logfile - \
-          --error-logfile - \
-          --capture-output \
-          --log-level info \
-          --workers 2 \
-          --timeout 120 \
-          --reload
-      "
-    container_name: app
+     command: >
+      sh -c "python manage.py makemigrations --dry-run --check &&
+            python manage.py migrate --no-input &&
+            python manage.py runserver
     ports:
       - "8081:8081"
     depends_on:
@@ -78,7 +64,7 @@ services:
       REDIS_URL: ${REDIS_URL}
       PORT: 8081
     networks:
-      - backend
+      - {{ project_name }}
 
   celery:
     build:
@@ -86,7 +72,6 @@ services:
       context: .
     restart: always
     command: celery --app={{ project_name }}.celery_app worker --loglevel=info
-    container_name: celery
     depends_on:
       db:
         condition: service_started
@@ -104,7 +89,7 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       REDIS_URL: ${REDIS_URL}
     networks:
-      - backend
+      - {{ project_name }}
 
   celery_beat:
     build:
@@ -112,7 +97,6 @@ services:
       context: .
     restart: always
     command: celery --app={{ project_name }}.celery_app beat --scheduler django_celery_beat.schedulers:DatabaseScheduler --loglevel=info
-    container_name: celery_beat
     depends_on:
       db:
         condition: service_healthy
@@ -132,12 +116,12 @@ services:
       CELERY_BROKER_URL: ${CELERY_BROKER_URL}
       REDIS_URL: ${REDIS_URL}
     networks:
-      - backend
+      - {{ project_name }}
 
 volumes:
   dbdata:
     name: {{ project_name }}_dbdata
 
 networks:
-  backend:
+  {{ project_name }}:
     driver: bridge

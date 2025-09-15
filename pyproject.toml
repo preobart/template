@@ -13,7 +13,6 @@ dependencies = [
     "django-defender>=0.9.8",
     "django-permissions-policy>=4.26.0",
     "djangorestframework>=3.16.0",
-    "gunicron",
     "pre-commit>=4.2.0",
     "psycopg2-binary>=2.9.10",
     "python-dotenv>=1.1.1",
