@@ -22,7 +22,7 @@ services:
     image: "rabbitmq:alpine"
     restart: always
     networks:
-      - backend
+      - {{ project_name }}
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_running"]
       interval: 5s
@@ -65,7 +65,10 @@ services:
       PORT: 8081
     networks:
       - {{ project_name }}
-
+    volumes:
+      - .:/app
+      - /app/.venv
+    
   celery:
     build:
       dockerfile: Dockerfile
